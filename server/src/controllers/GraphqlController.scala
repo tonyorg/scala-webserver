@@ -27,6 +27,7 @@ case class GraphqlErrors(errors: Seq[GraphqlError] = Nil)
 case class GraphqlError(
   message: String,
   locations: Seq[GraphqlLocation] = Nil
+
 )
 
 case class GraphqlLocation(
@@ -40,6 +41,7 @@ class GraphqlController(implicit
   gqlContext: GraphqlContext
 ) extends PostController[String] {
   override def action(ctx: AuthContext, gqlRaw: String) = {
+
     val gql = Json.parse[GraphqlBody](gqlRaw)
     val execReq = QueryParser.parse(gql.query) match {
       case Failure(e) => Future.successful(BadRequest -> formatError(e))

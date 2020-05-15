@@ -12,7 +12,7 @@ class GraphiqlController(implicit ec: ExecutionContext) extends GetController {
     ))
   }
 }
-//TODO: need MIT license?
+
 object GraphiqlController {
   val Html = """<!DOCTYPE html>
 <html lang="en">

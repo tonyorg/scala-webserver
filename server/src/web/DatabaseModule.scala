@@ -4,7 +4,7 @@ import monarchy.dal
 import scala.concurrent.ExecutionContext
 
 object DatabaseModule {
-  val DefaultDatabaseUrl = "jdbc:postgresql://localhost:5432/monarchy_local"
+  val DefaultDatabaseUrl = "jdbc:postgresql://localhost:5432/prod_tracker"
   val DatabaseUrl = sys.env.getOrElse("JDBC_DATABASE_URL", DefaultDatabaseUrl)
   val DatabaseUser = sys.env.getOrElse("USER", "")
   val PostgresConfig = dal.PostgresConfig(DatabaseUrl, DatabaseUser)
