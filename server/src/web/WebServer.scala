@@ -25,7 +25,6 @@ object WebServer extends App {
   import AuthFilter._
   val rootController = AuthRoute(All, new RootController)
   val adminController = AuthRoute(Admin, new AdminController)
-  //TODO: All is for debug, change to admin once have testing system
   val graphiqlController = AuthRoute(All, new GraphiqlController)
   val graphqlController = CorsModule.corsHandler(AuthRoute(All, new GraphqlController))
   val connectController = AuthRoute(LoggedIn, { c =>

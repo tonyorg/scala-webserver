@@ -2,7 +2,9 @@ package monarchy.graphql
 
 import monarchy.auth.AuthTooling
 import monarchy.dal
+import monarchy.dalwrite.WriteQueryBuilder
 import sangria.schema._
+
 import scala.concurrent.ExecutionContext
 
 case class AuthResult(
@@ -34,12 +36,23 @@ object MutationSchema {
             AuthResult(user, bearerToken)
           }
         }
+      ),
+
+      Field("createUser", authType,
+        arguments = List(Args.CreateUser),
+        resolve = { node =>
+          import dal.PostgresProfile.Implicits._
+          import node.ctx.executionContext
+          val args = node.arg(Args.CreateUser)
+          val user = dal.User(username = args.username, phoneNumber = args.phoneNumber, secret = AuthTooling.generateSecret)
+          node.ctx.queryCli.write(WriteQueryBuilder.put(user)).map { user =>
+            val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
+            AuthResult(Option(user), Option(bearerToken))
+          }
+        }
       )
     )
   )
-
-  // TODO (adu): Implement following field to support account creation.
-  // def loginNew = ???
 
   def authType = ObjectType(
     "Auth",
