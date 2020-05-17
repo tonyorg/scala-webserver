@@ -1,5 +1,7 @@
 package monarchy.graphql
 
+import java.time.Instant
+
 import monarchy.auth.AuthTooling
 import monarchy.dal
 import monarchy.dalwrite.WriteQueryBuilder
@@ -16,6 +18,11 @@ case class UserIdToken(
   bearerToken: Option[String]
 )
 
+case class UpdateResponse(
+  success: Boolean,
+  message: Option[String]
+)
+
 object MutationSchema {
   lazy val Def = ObjectType(
     "Mutation",
@@ -28,20 +35,7 @@ object MutationSchema {
           true
         }
       ),
-      Field("login", authType,
-        arguments = List(Args.Login),
-        resolve = { node =>
-          import dal.PostgresProfile.Implicits._
-          import node.ctx.executionContext
-          val args = node.arg(Args.Login)
-          val query = dal.User.query.filter(_.phoneNumber === args.phoneNumber)
-          node.ctx.queryCli.first(query).map { user =>
-            val bearerToken = user.map { u => AuthTooling.generateSignature(u.id, u.secret) }
-            AuthResult(user, bearerToken)
-          }
-        }
-      ),
-      
+
       Field("createUser", userIdTokenType,
         resolve = { node =>
           import node.ctx.executionContext
@@ -51,18 +45,52 @@ object MutationSchema {
             UserIdToken(Option(user.id), Option(bearerToken))
           }
         }
+      ),
+
+      Field("update", updateResponseType,
+        arguments = List(Args.Update),
+        resolve = { node =>
+          import dal.PostgresProfile.Implicits._
+          import node.ctx.executionContext
+          val args = node.arg(Args.Update)
+          val query = dal.User.query.filter(_.id === args.id)
+          node.ctx.queryCli.first(query).map { user =>
+            val bearerToken = user.map { u => AuthTooling.generateSignature(u.id, u.secret) }
+            val token: String = bearerToken.getOrElse("")
+            if (token != args.userSignature) {
+              UpdateResponse(false, Option("Incorrect signature"))
+            } else {
+              val interval = dal.TabInterval(userId = args.id, url = args.url, startTime = Instant.ofEpochMilli(args.startTime), endTime = Instant.ofEpochMilli(args.endTime))
+              node.ctx.queryCli.write(WriteQueryBuilder.put(interval))
+              UpdateResponse(true, Option("Success"))
+            }
+          }
+        }
       )
+
     )
   )
 
   def userIdTokenType = ObjectType(
-    "response",
+    "userId",
     fields[GraphqlContext, UserIdToken](
       Field("userId", OptionType(LongType),
         resolve = _.value.userId
       ),
       Field("bearerToken", OptionType(StringType),
         resolve = _.value.bearerToken
+      )
+    )
+  )
+
+  def updateResponseType = ObjectType(
+    "updateResponse",
+    fields[GraphqlContext, UpdateResponse](
+      Field("success", BooleanType,
+        resolve = _.value.success
+      ),
+      Field("message", OptionType(StringType),
+        resolve = _.value.message
       )
     )
   )

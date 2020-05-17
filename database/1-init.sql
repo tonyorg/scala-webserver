@@ -10,8 +10,8 @@ $$ LANGUAGE plpgsql;
 -- Simple users table.
 CREATE TABLE users (
   id SERIAL PRIMARY KEY NOT NULL,
-  username TEXT NOT NULL,
-  phone_number TEXT NOT NULL,
+  username TEXT,
+  phone_number TEXT,
   secret TEXT NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -21,5 +21,21 @@ CREATE TABLE users (
 
 CREATE TRIGGER users_updated_at
 BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE PROCEDURE update_timestamps();
+
+-- Intervals table.
+CREATE TABLE intervals (
+  id BIGSERIAL PRIMARY KEY NOT NULL,
+  user_id INTEGER NOT NULL,
+  url TEXT NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TRIGGER intervals_updated_at
+BEFORE UPDATE ON intervals
 FOR EACH ROW
 EXECUTE PROCEDURE update_timestamps();
