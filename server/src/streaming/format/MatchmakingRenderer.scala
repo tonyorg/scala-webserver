@@ -28,7 +28,7 @@ class MatchmakingRenderer(implicit val ec: ExecutionContext, queryCli: dal.Query
       users.map { user =>
         Data(
           userId = user.id.toString,
-          username = user.username,
+          username = "TOREMOVE",
           rating = user.rating
         )
       }
