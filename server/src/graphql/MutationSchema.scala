@@ -5,10 +5,14 @@ import monarchy.dal
 import monarchy.dalwrite.WriteQueryBuilder
 import sangria.schema._
 
-import scala.concurrent.ExecutionContext
 
 case class AuthResult(
   user: Option[dal.User],
+  bearerToken: Option[String]
+)
+
+case class UserIdToken(
+  userId: Option[Long],
   bearerToken: Option[String]
 )
 
@@ -37,19 +41,28 @@ object MutationSchema {
           }
         }
       ),
-
-      Field("createUser", authType,
-        arguments = List(Args.CreateUser),
+      
+      Field("createUser", userIdTokenType,
         resolve = { node =>
-          import dal.PostgresProfile.Implicits._
           import node.ctx.executionContext
-          val args = node.arg(Args.CreateUser)
-          val user = dal.User(username = args.username, phoneNumber = args.phoneNumber, secret = AuthTooling.generateSecret)
+          val user = dal.User(username = None, phoneNumber = None, secret = AuthTooling.generateSecret)
           node.ctx.queryCli.write(WriteQueryBuilder.put(user)).map { user =>
             val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-            AuthResult(Option(user), Option(bearerToken))
+            UserIdToken(Option(user.id), Option(bearerToken))
           }
         }
+      )
+    )
+  )
+
+  def userIdTokenType = ObjectType(
+    "response",
+    fields[GraphqlContext, UserIdToken](
+      Field("userId", OptionType(LongType),
+        resolve = _.value.userId
+      ),
+      Field("bearerToken", OptionType(StringType),
+        resolve = _.value.bearerToken
       )
     )
   )

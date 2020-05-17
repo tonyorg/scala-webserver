@@ -49,7 +49,6 @@ object QuerySchema {
     "User",
     fields[GraphqlContext, dal.User](
       Field("id", StringType, resolve = _.value.id.toString),
-      Field("username", StringType, resolve = _.value.username),
       Field("rating", IntType, resolve = _.value.rating),
     )
   )
