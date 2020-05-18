@@ -1,18 +1,26 @@
 package monarchy.graphql
 
+import java.time.Instant
+
 import monarchy.auth.AuthTooling
 import monarchy.dal
 import monarchy.dalwrite.WriteQueryBuilder
 import sangria.schema._
+import scala.util.{Try, Success, Failure};
 
+case class WebResponse[T](
+  success: Boolean,
+  message: Option[String],
+  data: Option[T] = None
+)
 
-case class AuthResult(
-  user: Option[dal.User],
+case class GenerateTokenResponse(
+  userId: Option[Long],
   bearerToken: Option[String]
 )
 
-case class UserIdToken(
-  userId: Option[Long],
+case class AuthResult(
+  user: Option[dal.User],
   bearerToken: Option[String]
 )
 
@@ -28,41 +36,73 @@ object MutationSchema {
           true
         }
       ),
-      Field("login", authType,
-        arguments = List(Args.Login),
-        resolve = { node =>
-          import dal.PostgresProfile.Implicits._
-          import node.ctx.executionContext
-          val args = node.arg(Args.Login)
-          val query = dal.User.query.filter(_.phoneNumber === args.phoneNumber)
-          node.ctx.queryCli.first(query).map { user =>
-            val bearerToken = user.map { u => AuthTooling.generateSignature(u.id, u.secret) }
-            AuthResult(user, bearerToken)
-          }
-        }
-      ),
-      
-      Field("createUser", userIdTokenType,
+
+      Field("generateToken", generateTokenType,
         resolve = { node =>
           import node.ctx.executionContext
           val user = dal.User(username = None, phoneNumber = None, secret = AuthTooling.generateSecret)
           node.ctx.queryCli.write(WriteQueryBuilder.put(user)).map { user =>
             val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-            UserIdToken(Option(user.id), Option(bearerToken))
+            WebResponse(true, Option("Success"), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken))))
           }
         }
+      ),
+
+      Field("trackEvent", genericResponseType,
+        arguments = List(Args.TrackEvent),
+        resolve = { node =>
+          import dal.PostgresProfile.Implicits._
+          import node.ctx.executionContext
+          val args = node.arg(Args.TrackEvent)
+          val query = dal.User.query.filter(_.id === args.id)
+          node.ctx.queryCli.first(query).map { user =>
+
+            val bearerToken = user.map { u => AuthTooling.generateSignature(u.id, u.secret) }
+            val token: String = bearerToken.getOrElse("")
+            if (token == "" || token != args.bearerToken) {
+              WebResponse(false, Option("Incorrect signature"))
+            } else {
+              val event = dal.Event(userId = args.id, domain = args.domain, path = args.path, startTime = Instant.ofEpochMilli(args.startTime), endTime = Instant.ofEpochMilli(args.endTime))
+              Try(node.ctx.queryCli.write(WriteQueryBuilder.put(event))) match{
+                case Success(result) =>
+                  WebResponse(true, Option("Success"))
+                case Failure(result) =>
+                  WebResponse(false, Option("Failed"))
+              }
+            }
+          }
+        }
+      )
+
+    )
+  )
+
+  def genericResponseType = ObjectType(
+    "registerResponse",
+    fields[GraphqlContext, WebResponse[_]](
+      Field("success", BooleanType,
+        resolve = _.value.success
+      ),
+      Field("message", OptionType(StringType),
+        resolve = _.value.message
       )
     )
   )
 
-  def userIdTokenType = ObjectType(
-    "response",
-    fields[GraphqlContext, UserIdToken](
+  def generateTokenType = ObjectType(
+    "generateToken",
+    fields[GraphqlContext, WebResponse[GenerateTokenResponse]](
+      Field("success", BooleanType,
+        resolve = _.value.success
+      ),
+      Field("message", OptionType(StringType),
+        resolve = _.value.message
+      ),
       Field("userId", OptionType(LongType),
-        resolve = _.value.userId
+        resolve = _.value.data.flatMap(_.userId)
       ),
       Field("bearerToken", OptionType(StringType),
-        resolve = _.value.bearerToken
+        resolve = _.value.data.flatMap(_.bearerToken)
       )
     )
   )

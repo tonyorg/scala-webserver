@@ -22,6 +22,7 @@ object Queryable {
   }
 
   implicit object User extends Simple[dal.User, dal.UserTable](dal.User.query, _.id)
+  implicit object Event extends Simple[dal.Event, dal.EventTable](dal.Event.query, _.id)
   implicit object Game extends Simple[dal.Game, dal.GameTable](dal.Game.query, _.id)
   implicit object Player extends Simple[dal.Player, dal.PlayerTable](dal.Player.query, _.id)
 }

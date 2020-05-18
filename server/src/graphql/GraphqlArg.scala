@@ -1,5 +1,7 @@
 package monarchy.graphql
 
+import java.time.Instant
+
 import monarchy.util.Json
 import sangria.macros.derive.{deriveInputObjectType => deriveInput}
 import sangria.marshalling.{FromInput, ResultMarshaller}
@@ -15,20 +17,24 @@ abstract class GraphqlArg[T: TypeTag] {
   }
 }
 
+
+
+case class TrackEventQuery(id: Long, bearerToken: String, domain: String, path: String, startTime: Long, endTime: Long)
+object TrackEventQuery extends GraphqlArg[TrackEventQuery]
+
 case class AuthQuery(phoneNumber: String)
 object AuthQuery extends GraphqlArg[AuthQuery]
-
-case class LoginQuery(phoneNumber: String, otp: String)
-object LoginQuery extends GraphqlArg[LoginQuery]
 
 case class GamesQuery(userId: String)
 object GamesQuery extends GraphqlArg[GamesQuery]
 
+
+
 object Args {
   // Argument types
+  val TrackEvent = Argument("q", deriveInput[TrackEventQuery](), description = "Attempt to track an event then add it to user.")
   val Id = Argument("id", StringType, description = "ID of this entity.")
   val Auth = Argument("q", deriveInput[AuthQuery](), description = "Query to initiate auth request.")
-  val Login = Argument("q", deriveInput[LoginQuery](), description = "Query to verify login credentials.")
   val Games = Argument("q", deriveInput[GamesQuery](), description = "Query for games matching the criteria.")
 }
 
