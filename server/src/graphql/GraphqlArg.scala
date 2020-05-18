@@ -17,20 +17,24 @@ abstract class GraphqlArg[T: TypeTag] {
   }
 }
 
+
+
+case class TrackEventQuery(id: Long, bearerToken: String, domain: String, path: String, startTime: Long, endTime: Long)
+object TrackEventQuery extends GraphqlArg[TrackEventQuery]
+
 case class AuthQuery(phoneNumber: String)
 object AuthQuery extends GraphqlArg[AuthQuery]
-
-case class UpdateQuery(id: Long, userSignature: String, url: String, startTime: Long, endTime: Long)
-object UpdateQuery extends GraphqlArg[UpdateQuery]
 
 case class GamesQuery(userId: String)
 object GamesQuery extends GraphqlArg[GamesQuery]
 
+
+
 object Args {
   // Argument types
+  val TrackEvent = Argument("q", deriveInput[TrackEventQuery](), description = "Attempt to track an event then add it to user.")
   val Id = Argument("id", StringType, description = "ID of this entity.")
   val Auth = Argument("q", deriveInput[AuthQuery](), description = "Query to initiate auth request.")
-  val Update = Argument("q", deriveInput[UpdateQuery](), description = "Query to update data for user.")
   val Games = Argument("q", deriveInput[GamesQuery](), description = "Query for games matching the criteria.")
 }
 

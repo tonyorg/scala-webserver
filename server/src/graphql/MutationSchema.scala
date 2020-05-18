@@ -6,21 +6,22 @@ import monarchy.auth.AuthTooling
 import monarchy.dal
 import monarchy.dalwrite.WriteQueryBuilder
 import sangria.schema._
+import scala.util.{Try, Success, Failure};
 
-
-case class AuthResult(
-  user: Option[dal.User],
-  bearerToken: Option[String]
+case class WebResponse[T](
+  success: Boolean,
+  message: Option[String],
+  data: Option[T] = None
 )
 
-case class UserIdToken(
+case class GenerateTokenResponse(
   userId: Option[Long],
   bearerToken: Option[String]
 )
 
-case class UpdateResponse(
-  success: Boolean,
-  message: Option[String]
+case class AuthResult(
+  user: Option[dal.User],
+  bearerToken: Option[String]
 )
 
 object MutationSchema {
@@ -36,33 +37,38 @@ object MutationSchema {
         }
       ),
 
-      Field("createUser", userIdTokenType,
+      Field("generateToken", generateTokenType,
         resolve = { node =>
           import node.ctx.executionContext
           val user = dal.User(username = None, phoneNumber = None, secret = AuthTooling.generateSecret)
           node.ctx.queryCli.write(WriteQueryBuilder.put(user)).map { user =>
             val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-            UserIdToken(Option(user.id), Option(bearerToken))
+            WebResponse(true, Option("Success"), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken))))
           }
         }
       ),
 
-      Field("update", updateResponseType,
-        arguments = List(Args.Update),
+      Field("trackEvent", genericResponseType,
+        arguments = List(Args.TrackEvent),
         resolve = { node =>
           import dal.PostgresProfile.Implicits._
           import node.ctx.executionContext
-          val args = node.arg(Args.Update)
+          val args = node.arg(Args.TrackEvent)
           val query = dal.User.query.filter(_.id === args.id)
           node.ctx.queryCli.first(query).map { user =>
+
             val bearerToken = user.map { u => AuthTooling.generateSignature(u.id, u.secret) }
             val token: String = bearerToken.getOrElse("")
-            if (token != args.userSignature) {
-              UpdateResponse(false, Option("Incorrect signature"))
+            if (token == "" || token != args.bearerToken) {
+              WebResponse(false, Option("Incorrect signature"))
             } else {
-              val interval = dal.TabInterval(userId = args.id, url = args.url, startTime = Instant.ofEpochMilli(args.startTime), endTime = Instant.ofEpochMilli(args.endTime))
-              node.ctx.queryCli.write(WriteQueryBuilder.put(interval))
-              UpdateResponse(true, Option("Success"))
+              val event = dal.Event(userId = args.id, domain = args.domain, path = args.path, startTime = Instant.ofEpochMilli(args.startTime), endTime = Instant.ofEpochMilli(args.endTime))
+              Try(node.ctx.queryCli.write(WriteQueryBuilder.put(event))) match{
+                case Success(result) =>
+                  WebResponse(true, Option("Success"))
+                case Failure(result) =>
+                  WebResponse(false, Option("Failed"))
+              }
             }
           }
         }
@@ -71,26 +77,32 @@ object MutationSchema {
     )
   )
 
-  def userIdTokenType = ObjectType(
-    "userId",
-    fields[GraphqlContext, UserIdToken](
-      Field("userId", OptionType(LongType),
-        resolve = _.value.userId
-      ),
-      Field("bearerToken", OptionType(StringType),
-        resolve = _.value.bearerToken
-      )
-    )
-  )
-
-  def updateResponseType = ObjectType(
-    "updateResponse",
-    fields[GraphqlContext, UpdateResponse](
+  def genericResponseType = ObjectType(
+    "registerResponse",
+    fields[GraphqlContext, WebResponse[_]](
       Field("success", BooleanType,
         resolve = _.value.success
       ),
       Field("message", OptionType(StringType),
         resolve = _.value.message
+      )
+    )
+  )
+
+  def generateTokenType = ObjectType(
+    "generateToken",
+    fields[GraphqlContext, WebResponse[GenerateTokenResponse]](
+      Field("success", BooleanType,
+        resolve = _.value.success
+      ),
+      Field("message", OptionType(StringType),
+        resolve = _.value.message
+      ),
+      Field("userId", OptionType(LongType),
+        resolve = _.value.data.flatMap(_.userId)
+      ),
+      Field("bearerToken", OptionType(StringType),
+        resolve = _.value.data.flatMap(_.bearerToken)
       )
     )
   )

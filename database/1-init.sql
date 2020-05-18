@@ -24,18 +24,19 @@ BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE PROCEDURE update_timestamps();
 
--- Intervals table.
-CREATE TABLE intervals (
+-- Events table.
+CREATE TABLE events (
   id BIGSERIAL PRIMARY KEY NOT NULL,
   user_id INTEGER NOT NULL,
-  url TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  path TEXT NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TRIGGER intervals_updated_at
-BEFORE UPDATE ON intervals
+CREATE TRIGGER events_updated_at
+BEFORE UPDATE ON events
 FOR EACH ROW
 EXECUTE PROCEDURE update_timestamps();
