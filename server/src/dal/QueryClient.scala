@@ -4,12 +4,15 @@ import scala.concurrent.{ExecutionContext, Future}
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
+import scala.util.Try
+
 trait QueryClient {
   import PostgresProfile.api._
   def all[E](query: Query[Table[E], E, Seq]): Future[Seq[E]]
   def first[E](query: Query[Table[E], E, Seq]): Future[Option[E]]
   def read[E](dbio: DBIO[E]): Future[E]
   def write[E](dbio: DBIO[E]): Future[E]
+  def attemptWrite[E](dbio: DBIO[E]): Future[Try[E]]
 }
 
 case class QueryClientImpl(
@@ -35,5 +38,9 @@ case class QueryClientImpl(
   // Methods for writing.
   override def write[E](dbio: DBIO[E]): Future[E] = {
     connection.run(dbio.transactionally)
+  }
+
+  override def attemptWrite[E](dbio: DBIO[E]): Future[Try[E]] = {
+    connection.run(dbio.asTry)
   }
 }

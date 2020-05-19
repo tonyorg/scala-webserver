@@ -4,8 +4,8 @@ import java.time.Instant
 
 case class User(
   id: Long = NewId,
-  username: Option[String],
-  phoneNumber: Option[String],
+  username: Option[String] = None,
+  phoneNumber: Option[String] = None,
   rating: Int = 1000,
   secret: String,
   createdAt: Instant = Instant.now,
