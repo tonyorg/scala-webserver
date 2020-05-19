@@ -12,13 +12,13 @@ object AuthTooling {
   def generateSignature(userId: Long, secret: String): String = {
     Jwts.builder.setSubject(userId.toString).signWith(SignatureAlgorithm.HS512, secret).compact
   }
-
+//TODO: all the username/password logic
   def onInvalidUsernameErrorMessage: String = {
     "Incorrect username format. Username must contain " + "anything"
   }
 
   def isValidUsernameFormat(username: String): Boolean = {
-    true//TODO: verify username (i.e. minlength, etc)
+    true
   }
 
   def onInvalidPasswordErrorMessage: String = {
@@ -26,11 +26,11 @@ object AuthTooling {
   }
 
   def isValidPasswordFormat(password: String): Boolean = {
-    true//TODO: verify password (i.e. minlength, numbers/characters, etc)
+    true
   }
 
   def hashPassword(password: String): String = {
-    password //TODO: implement actual hashing
+    password
   }
 
 }

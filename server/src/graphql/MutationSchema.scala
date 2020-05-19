@@ -77,7 +77,7 @@ object MutationSchema {
         }
       ),
 
-      Field("register", generateTokenType,
+      Field("registerUser", generateTokenType,
         arguments = List(Args.Register),
         resolve = {node =>
           import dal.PostgresProfile.Implicits._
@@ -103,7 +103,7 @@ object MutationSchema {
                         case Some(oldUsername) =>
                           ("Already registered with username: " + oldUsername, user)
                         case _ =>
-                          ("Successfully added username", user.copy(username = Option(args.username)))
+                          ("Successfully registered with username: " + args.username, user.copy(username = Option(args.username)))
                       }
                     }
                   case _ =>
@@ -112,15 +112,16 @@ object MutationSchema {
               case _ =>
                 Future.successful("ID not found, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
             }
+            //TODO: password
             userReq.flatMap { req =>
-              node.ctx.queryCli.attemptWrite(WriteQueryBuilder.put(req._2)).flatMap {
+              node.ctx.queryCli.attemptWrite(WriteQueryBuilder.put(req._2)).map {
                 case Success(user) =>
                   val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-                  Future.successful(WebResponse(true, Option(req._1), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken)))))
+                  WebResponse(true, Option(req._1), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken))))
                 case Failure(e: PSQLException) if(e.getSQLState == "23505") =>
-                  Future.successful(WebResponse(false, Option("Username already exists"), Option(GenerateTokenResponse(None, None))))
+                  WebResponse(false, Option("Username already exists"), Option(GenerateTokenResponse(None, None)))
                 case Failure(_) =>
-                  Future.successful(WebResponse(false, Option("Something went wrong adding user to db"), Option(GenerateTokenResponse(None, None))))
+                  WebResponse(false, Option("Something went wrong adding user"), Option(GenerateTokenResponse(None, None)))
               }
             }
           }
