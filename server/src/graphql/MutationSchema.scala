@@ -89,6 +89,10 @@ object MutationSchema {
           } else if (!AuthTooling.isValidPasswordFormat(args.password)) {
             Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidPasswordErrorMessage), Option(GenerateTokenResponse(None, None))))
           } else {
+            def createNewUser(username: String, password: String): User = {
+              val hashed = AuthTooling.hashPassword(password, None)
+              dal.User(username = Option(args.username), secret = AuthTooling.generateSecret, pwHash = Option(hashed._1), salt = Option(hashed._2))
+            }
             val userReq: Future[(String, User)] = (args.id, args.bearerToken) match {
               case (Some(idStr), Some(actualToken)) =>
                 val id = idStr.toLong
@@ -97,22 +101,22 @@ object MutationSchema {
                   case Some(user) =>
                     val expectedToken = AuthTooling.generateSignature(user.id, user.secret)
                     if (actualToken != expectedToken) {
-                      ("Invalid signature, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
+                      ("Invalid signature, new user created", createNewUser(args.username, args.password))
                     } else {
                       user.username match {
                         case Some(oldUsername) =>
                           ("Already registered with username: " + oldUsername, user)
                         case _ =>
-                          ("Successfully registered with username: " + args.username, user.copy(username = Option(args.username)))
+                          val hashed = AuthTooling.hashPassword(args.password, None)
+                          ("Successfully registered with username: " + args.username, user.copy(username = Option(args.username), pwHash = Option(hashed._1), salt = Option(hashed._2)))
                       }
                     }
                   case _ =>
-                    ("ID not found, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
+                    ("ID not found, new user created", createNewUser(args.username, args.password))
                 }
               case _ =>
-                Future.successful("ID not found, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
+                Future.successful("ID not found, new user created", createNewUser(args.username, args.password))
             }
-            //TODO: password
             userReq.flatMap { req =>
               node.ctx.queryCli.attemptWrite(WriteQueryBuilder.put(req._2)).map {
                 case Success(user) =>

@@ -8,6 +8,8 @@ case class User(
   phoneNumber: Option[String] = None,
   rating: Int = 1000,
   secret: String,
+  pwHash: Option[String] = None,
+  salt: Option[String] = None,
   createdAt: Instant = Instant.now,
   updatedAt: Instant = Instant.now
 )
@@ -20,5 +22,7 @@ class UserTable(tag: Tag) extends TableDef[User](tag, "users") {
   def phoneNumber = column[Option[String]]("phone_number")
   def rating = column[Int]("rating")
   def secret = column[String]("secret")
-  def * = (id, username, phoneNumber, rating, secret, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply)
+  def pwHash = column[Option[String]]("pw_hash")
+  def salt = column[Option[String]]("salt")
+  def * = (id, username, phoneNumber, rating, secret, pwHash, salt, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply)
 }
