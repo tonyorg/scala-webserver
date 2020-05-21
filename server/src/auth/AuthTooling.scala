@@ -33,22 +33,30 @@ object AuthTooling {
     password.length > 0
   }
 
+  def stringToBytes(str: String): Array[Byte] = {
+    Base64.getDecoder.decode(str)
+  }
+
+  def bytesToString(bytes: Array[Byte]): String = {
+    Base64.getEncoder.encodeToString(bytes)
+  }
+
   def hashPassword(password: String, saltOpt: Option[String]): (String, String) = {
     val numIterations = 1000
     val salt = saltOpt match {
       case None =>
         val random = new SecureRandom()
-        val out = new Array[Byte](3)
-        random.nextBytes(out)
-        out
-      case Some(out) =>
-        out.getBytes
+        val newSalt = new Array[Byte](128)
+        random.nextBytes(newSalt)
+        newSalt
+      case Some(inputSalt) =>
+        stringToBytes(inputSalt)
     }
 
     val spec = new PBEKeySpec(password.toCharArray, salt, numIterations, 128)
     val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
     val hash = factory.generateSecret(spec).getEncoded
-    (new String(hash), new String(salt))
+    (bytesToString(hash), bytesToString(salt))
   }
 
 }

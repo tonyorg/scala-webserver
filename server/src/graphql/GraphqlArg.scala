@@ -17,8 +17,8 @@ abstract class GraphqlArg[T: TypeTag] {
   }
 }
 
-case class RegisterQuery(id: Option[String], bearerToken: Option[String], username: String, password: String)
-object RegisterQuery extends GraphqlArg[RegisterQuery]
+case class CredentialsQuery(id: Option[String], bearerToken: Option[String], username: String, password: String)
+object CredentialsQuery extends GraphqlArg[CredentialsQuery]
 
 case class TrackEventQuery(id: Long, bearerToken: String, domain: String, path: String, startTime: Long, endTime: Long)
 object TrackEventQuery extends GraphqlArg[TrackEventQuery]
@@ -33,7 +33,7 @@ object GamesQuery extends GraphqlArg[GamesQuery]
 
 object Args {
   // Argument types
-  val Register = Argument("q", deriveInput[RegisterQuery](), description = "Attempt to add an username to an user")
+  val Credentials = Argument("q", deriveInput[CredentialsQuery](), description = "Client sent username and password credentials.")
   val TrackEvent = Argument("q", deriveInput[TrackEventQuery](), description = "Attempt to track an event then add it to user.")
   val Id = Argument("id", StringType, description = "ID of this entity.")
   val Auth = Argument("q", deriveInput[AuthQuery](), description = "Query to initiate auth request.")
