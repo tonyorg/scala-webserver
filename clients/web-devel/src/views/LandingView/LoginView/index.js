@@ -12,16 +12,17 @@ const LoginView = (props) => {
       super(props);
       this.state = {
         username: "",
-        password: ""
-      }
+        password: "",
+        errorMessage : ""
+      };
       this.handleChange = this.handleChange.bind(this);
       this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
       const name = event.target.name;
-      const value = event.target.value;
-      this.state[name] = value;
+      const val = event.target.value;
+      this.state[name] = val;
     }
 
     handleSubmit(event) {
@@ -31,8 +32,19 @@ const LoginView = (props) => {
         writeLogin({
           username,
           password
-        }).then(response => console.log(response));
-        // }).then(r => props.onLogin(r.data.login));
+        }).then(response => {
+          if (response && response.data && response.data.login) {
+            if (response.data.login.success === true) {
+              props.onLogin(response.data.login);
+            } else {
+              //TODO: for now...
+              alert(response.data.login.message);
+            }
+          } else {
+            console.log("Response format incorrect");
+            console.log(response);
+          }
+        });
     }
 
     render() {
@@ -41,6 +53,9 @@ const LoginView = (props) => {
           <Form.Group>
             <Form.Label>Username</Form.Label>
             <Form.Control name="username" type = "text" placeholder="Enter username" onChange={this.handleChange}/>
+            <Form.Control.Feedback type="invalid">
+              Username not found!
+            </Form.Control.Feedback>
           </Form.Group>
           <Form.Group>
             <Form.Label>Password</Form.Label>

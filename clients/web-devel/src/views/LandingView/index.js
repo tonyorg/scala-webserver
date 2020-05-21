@@ -9,7 +9,7 @@ const LandingView = (props) => {
   // State
   const dispatch = useDispatch();
   const auth = useSelector(_ => _.auth);
-  const onLogin = React.useCallback(_ => dispatch(authSet(_)))
+  const onLogin = React.useCallback(e => dispatch(authSet(e)))
 
   return auth.loggedIn ?
     <DashboardView auth={auth} /> : <LoginView onLogin={onLogin} />;

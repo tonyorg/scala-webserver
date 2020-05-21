@@ -17,9 +17,10 @@ case class WebResponse[T](
   data: Option[T] = None
 )
 
-case class GenerateTokenResponse(
-  userId: Option[Long],
-  bearerToken: Option[String]
+case class CredentialsResponse(
+  userId: Option[Long] = None,
+  bearerToken: Option[String] = None,
+  username: Option[String] = None
 )
 
 case class AuthResult(
@@ -40,13 +41,13 @@ object MutationSchema {
         }
       ),
 
-      Field("generateToken", generateTokenType,
+      Field("generateToken", credentialsType,
         resolve = { node =>
           import node.ctx.executionContext
           val user = dal.User(username = None, phoneNumber = None, secret = AuthTooling.generateSecret)
           node.ctx.queryCli.write(WriteQueryBuilder.put(user)).map { user =>
             val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-            WebResponse(success = true, Option("Success"), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken))))
+            WebResponse(success = true, Option("Success"), Option(CredentialsResponse(Option(user.id), Option(bearerToken))))
           }
         }
       ),
@@ -77,7 +78,7 @@ object MutationSchema {
         }
       ),
 
-      Field("login", generateTokenType,
+      Field("login", credentialsType,
         arguments = List(Args.Credentials),
         resolve = {node =>
           import dal.PostgresProfile.Implicits._
@@ -91,22 +92,22 @@ object MutationSchema {
                   val hashed = AuthTooling.hashPassword(args.password, Option(salt))
                   if (hashed._1 != pwHash) {
                     //later hide messages, currently for debugging
-                    WebResponse(success = false, Option("Incorrect password"), Option(GenerateTokenResponse(None, None)))
+                    WebResponse(success = false, Option("Incorrect password"), Option(CredentialsResponse()))
                   } else {
-                    WebResponse(success = true, Option("Successfully logged in as: " + args.username), Option(GenerateTokenResponse(userId = Option(user.id), bearerToken = Option(AuthTooling.generateSignature(user.id, user.secret)))))
+                    WebResponse(success = true, Option("Successfully logged in as: " + args.username), Option(CredentialsResponse(userId = Option(user.id), bearerToken = Option(AuthTooling.generateSignature(user.id, user.secret)), username = Option(args.username))))
                   }
                 case _ =>
-                  WebResponse(success = false, Option("Authentication failure"), Option(GenerateTokenResponse(None, None)))
+                  WebResponse(success = false, Option("Authentication failure"), Option(CredentialsResponse()))
 
               }
             case _ =>
-              WebResponse(success = false, Option("Username not found"), Option(GenerateTokenResponse(None, None)))
+              WebResponse(success = false, Option("Username not found"), Option(CredentialsResponse()))
           }
           //TODO: merge bearer tokens?
         }
       ),
 
-      Field("registerUser", generateTokenType,
+      Field("registerUser", credentialsType,
         arguments = List(Args.Credentials),
         resolve = {node =>
           import dal.PostgresProfile.Implicits._
@@ -114,9 +115,9 @@ object MutationSchema {
           import org.postgresql.util.PSQLException
           val args = node.arg(Args.Credentials)
           if (!AuthTooling.isValidUsernameFormat(args.username)) {
-            Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidUsernameErrorMessage), Option(GenerateTokenResponse(None, None))))
+            Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidUsernameErrorMessage), Option(CredentialsResponse())))
           } else if (!AuthTooling.isValidPasswordFormat(args.password)) {
-            Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidPasswordErrorMessage), Option(GenerateTokenResponse(None, None))))
+            Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidPasswordErrorMessage), Option(CredentialsResponse())))
           } else {
             def createNewUser(username: String, password: String): User = {
               val hashed = AuthTooling.hashPassword(password, None)
@@ -150,11 +151,11 @@ object MutationSchema {
               node.ctx.queryCli.attemptWrite(WriteQueryBuilder.put(req._2)).map {
                 case Success(user) =>
                   val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-                  WebResponse(success = true, Option(req._1), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken))))
+                  WebResponse(success = true, Option(req._1), Option(CredentialsResponse(Option(user.id), Option(bearerToken), Option(args.username))))
                 case Failure(e: PSQLException) if(e.getSQLState == "23505") =>
-                  WebResponse(success = false, Option("Username already exists"), Option(GenerateTokenResponse(None, None)))
+                  WebResponse(success = false, Option("Username already exists"), Option(CredentialsResponse()))
                 case Failure(_) =>
-                  WebResponse(success = false, Option("Something went wrong adding user"), Option(GenerateTokenResponse(None, None)))
+                  WebResponse(success = false, Option("Something went wrong adding user"), Option(CredentialsResponse()))
               }
             }
           }
@@ -177,9 +178,9 @@ object MutationSchema {
     )
   )
 
-  def generateTokenType = ObjectType(
-    "generateToken",
-    fields[GraphqlContext, WebResponse[GenerateTokenResponse]](
+  def credentialsType = ObjectType(
+    "credentials",
+    fields[GraphqlContext, WebResponse[CredentialsResponse]](
       Field("success", BooleanType,
         resolve = _.value.success
       ),
@@ -191,6 +192,9 @@ object MutationSchema {
       ),
       Field("bearerToken", OptionType(StringType),
         resolve = _.value.data.flatMap(_.bearerToken)
+      ),
+      Field("username", OptionType(StringType),
+        resolve = _.value.data.flatMap(_.username)
       )
     )
   )
