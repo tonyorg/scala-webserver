@@ -40,3 +40,6 @@ export const gameSetSelections = (selections) =>
 
 export const gameSetPhase = (phase) =>
   createAction(Types.GAME_SET_PHASE, phase);
+
+export const updateEventsDisplay = (events) =>
+  console.log(events);

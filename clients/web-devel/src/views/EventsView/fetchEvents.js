@@ -5,5 +5,17 @@ export default function fetchEvents(q) {
   return fetch(query)({ q });
 }
 
-const query = gql` 
+const query = gql`
+  query getEvents($q: TokenIdQuery!) {
+    getEvents(q: $q) {
+      success
+      message
+      events{
+        domain
+        path
+        startTime
+        endTime
+      }
+    }
+  }
 `;

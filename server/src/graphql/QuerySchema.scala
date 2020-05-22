@@ -1,15 +1,19 @@
 package monarchy.graphql
 
+import monarchy.auth.AuthTooling
 import monarchy.dal
+import monarchy.dal.Event
 import monarchy.game
 import monarchy.marshalling.game.GameStringDeserializer
 import monarchy.util.Json
 import sangria.schema._
-import scala.concurrent.ExecutionContext
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object QuerySchema {
   lazy val Def = ObjectType(
     "Query",
+
     fields[GraphqlContext, Unit](
       Field("user", OptionType(UserType),
         arguments = List(Args.Id),
@@ -20,6 +24,38 @@ object QuerySchema {
           node.ctx.queryCli.first(query)
         }
       ),
+
+      Field("getEvents", EventsType,
+        arguments = List(Args.TokenId),
+        resolve = { node =>
+          import dal.PostgresProfile.Implicits._
+          import node.ctx.executionContext
+          val args = node.arg(Args.TokenId)
+          val query = dal.User.query.filter(_.id === args.userId.toLong)
+          val seqResp = node.ctx.queryCli.first(query).flatMap {
+            case Some(user) =>
+              val expectedToken = AuthTooling.generateSignature(user.id, user.secret)
+              if (args.bearerToken != expectedToken) {
+                Future(Seq.empty[Event])
+              } else {
+                val query = dal.Event.query.filter(_.userId === args.userId.toLong)
+                node.ctx.queryCli.all(query).map { eventSeq =>
+                  eventSeq.map(event => Event(id = event.id, userId = event.userId, domain = event.domain, path = event.path, startTime = event.startTime, endTime = event.endTime))
+                }
+              }
+            case _ =>
+              Future(Seq.empty[Event])
+          }
+          seqResp.map{seq =>
+            if (seq.isEmpty) {
+              WebResponse(false, Option("Invalid credentials"), Option(seq))
+            } else {
+              WebResponse(true, Option("Success"), Option(seq))
+            }
+          }
+        }
+      ),
+
       Field("game", OptionType(GameType),
         arguments = List(Args.Id),
         resolve = { node =>
@@ -50,6 +86,16 @@ object QuerySchema {
     fields[GraphqlContext, dal.User](
       Field("id", StringType, resolve = _.value.id.toString),
       Field("rating", IntType, resolve = _.value.rating),
+    )
+  )
+
+  lazy val EventType = ObjectType(
+    "Event",
+    fields[GraphqlContext, dal.Event](
+      Field("domain", StringType, resolve = _.value.domain),
+      Field("path", StringType, resolve = _.value.path),
+      Field("startTime", LongType, resolve = _.value.startTime.toEpochMilli),
+      Field("endTime", LongType, resolve = _.value.endTime.toEpochMilli),
     )
   )
 
@@ -130,6 +176,21 @@ object QuerySchema {
       Field("currentBlocking", FloatType, resolve = { node =>
         node.value.conf.blocking + node.value.blockingAjustment
       })
+    )
+  )
+
+  lazy val EventsType = ObjectType(
+    "events",
+    fields[GraphqlContext, WebResponse[Seq[Event]]](
+      Field("success", BooleanType,
+        resolve = _.value.success
+      ),
+      Field("message", OptionType(StringType),
+        resolve = _.value.message
+      ),
+      Field("events", OptionType(ListType(QuerySchema.EventType)),
+        resolve = _.value.data
+      )
     )
   )
 }
