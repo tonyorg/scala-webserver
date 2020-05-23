@@ -13,6 +13,7 @@ trait QueryClient {
   def read[E](dbio: DBIO[E]): Future[E]
   def write[E](dbio: DBIO[E]): Future[E]
   def attemptWrite[E](dbio: DBIO[E]): Future[Try[E]]
+  def getConnection: JdbcProfile#Backend#Database
 }
 
 case class QueryClientImpl(
@@ -22,6 +23,9 @@ case class QueryClientImpl(
 
   private val connection = cfg.db
 
+  override def getConnection = {
+    connection
+  }
   // Methods for reading.
   override def all[E](query: Query[Table[E], E, Seq]): Future[Seq[E]] = {
     connection.run(query.result)
@@ -35,6 +39,8 @@ case class QueryClientImpl(
     connection.run(dbio)
   }
 
+
+
   // Methods for writing.
   override def write[E](dbio: DBIO[E]): Future[E] = {
     connection.run(dbio.transactionally)
@@ -43,4 +49,6 @@ case class QueryClientImpl(
   override def attemptWrite[E](dbio: DBIO[E]): Future[Try[E]] = {
     connection.run(dbio.asTry)
   }
+
+
 }
