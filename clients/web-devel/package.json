@@ -5,11 +5,12 @@
   "license": "MIT",
   "scripts": {
     "dev": "webpack-dev-server --env.env=dev",
+    "prod": "webpack-dev-server --env.env=prod",
     "dev:bundleanalyzer": "yarn dev -- --env.addons=bundleanalyzer",
     "prebuild": "rimraf dist",
     "build": "cross-env NODE_ENV=production webpack -p --env.env=prod",
     "build:bundleanalyzer": "yarn build -- --env.addons=bundleanalyzer",
-    "start": "node index.js"
+    "start": "yarn prod"
   },
   "dependencies": {
     "graphql": "^14.5.3",
