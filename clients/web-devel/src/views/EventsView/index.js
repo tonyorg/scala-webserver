@@ -7,23 +7,33 @@ import { updateEventsDisplay } from '~/state/actions';
 import fetchGames from "../GamesView/fetchGames";
 import styles from "../DashboardView/index.css";
 import Alert from "react-bootstrap/Alert";
+import {useState} from "react";
 
 const EventsView = (props) => {
+  const [data, setData] = useState([]);
   const dispatch = useDispatch();
   const userId = useSelector(_ => _.auth.userId);
   const bearerToken = useSelector(_ => _.auth.bearerToken);
-  // const active = recent.filter(_ => _.status === 'Started');
-  // onComponentDidMount, load data
   React.useEffect(() => {
     fetchEvents({userId, bearerToken}).then(_ => {
-      const domainData = {};
-      const domainPathData = {}
+      if (_.data && _.data.fetchTopDomains) {
+        if(_.data.fetchTopDomains.success === true) {
+          setData(_.data.fetchTopDomains.events);
+        } else {
+          console.log(_.data.fetchTopDomains.message);
+        }
+      } else {
+        console.log("Response format incorrect");
+        console.log(_.data);
+      }
       // dispatch(updateEventsDisplay(_.data))
     })
   }, []);
 
   return (
-    <EventsChart/>
+    <EventsChart
+      data={data}
+    />
   );
 };
 

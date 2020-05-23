@@ -6,7 +6,7 @@ export default function writeAuth(q) {
 }
 
 const query = gql`
-  mutation login($q: CredentialsQuery!) {
+  query login($q: CredentialsQuery!) {
     login(q: $q) {
       userId
       bearerToken

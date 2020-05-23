@@ -6,15 +6,13 @@ export default function fetchEvents(q) {
 }
 
 const query = gql`
-  query getEvents($q: TokenIdQuery!) {
-    getEvents(q: $q) {
+  query getEvents($q: TopDomainsQuery!) {
+    fetchTopDomains(q: $q) {
       success
       message
       events{
         domain
-        path
-        startTime
-        endTime
+        duration
       }
     }
   }
