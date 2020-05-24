@@ -1,6 +1,6 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
-const webSocketRoute = 'ws://localhost:8080/connect';
+const webSocketRoute = 'ws://https://prod-tracker-staging.herokuapp.com/connect';
 const createWebSocket = () => (
   new ReconnectingWebSocket(webSocketRoute, null, {
     automaticOpen: false,

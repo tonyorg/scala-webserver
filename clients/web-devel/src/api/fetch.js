@@ -1,7 +1,7 @@
 import { print } from 'graphql/language/printer';
 import Auth from './auth';
 
-const graphqlRoute = 'http://localhost:8080/graphql';
+const graphqlRoute = 'https://prod-tracker-staging.herokuapp.com/graphql';
 
 const fetchGql = (graphqlAst) => {
   const { userId, bearerToken } = Auth.poll();

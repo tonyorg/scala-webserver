@@ -2,6 +2,14 @@
 
 This is a web-based API client for the monarchy backend intended for easing development and debugging.
 
+### Deploying to Heroku
+
+//TODO: Workaround
+```
+git push heroku `git subtree split --prefix clients/web-devel/ master`master  --force
+```
+Can replace ``master` `` with ``local-branch-name` ``
+
 ### Usage
 
 Install dependencies
@@ -34,7 +42,7 @@ Run in development
 $ yarn dev:bundleanalyzer
 ```
 
-Run on the production oprimized build
+Run on the production optimized build
 
 ```
 $ yarn build:bundleanalyzer
