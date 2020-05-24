@@ -69,7 +69,7 @@ const LoginView = (props) => {
   return (
     <>
       <Jumbotron>
-        <h1>Welcome to Productivity Tracker!</h1>
+        <h1>Welcome to Productivity Tracker!!!</h1>
         <p>
           Please login to view and analyse your data.
         </p>
