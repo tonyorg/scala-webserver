@@ -4,9 +4,12 @@ import java.time.Instant
 
 import monarchy.auth.AuthTooling
 import monarchy.dal
+import monarchy.dal.User
 import monarchy.dalwrite.WriteQueryBuilder
 import sangria.schema._
-import scala.util.{Try, Success, Failure};
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try};
 
 case class WebResponse[T](
   success: Boolean,
@@ -71,6 +74,58 @@ object MutationSchema {
               }
             }
           }
+        }
+      ),
+
+      Field("registerUser", generateTokenType,
+        arguments = List(Args.Register),
+        resolve = {node =>
+          import dal.PostgresProfile.Implicits._
+          import node.ctx.executionContext
+          import org.postgresql.util.PSQLException
+          val args = node.arg(Args.Register)
+          if (!AuthTooling.isValidUsernameFormat(args.username)) {
+            Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidUsernameErrorMessage), Option(GenerateTokenResponse(None, None))))
+          } else if (!AuthTooling.isValidPasswordFormat(args.password)) {
+            Future.successful(WebResponse(success = false, Option(AuthTooling.onInvalidPasswordErrorMessage), Option(GenerateTokenResponse(None, None))))
+          } else {
+            val userReq: Future[(String, User)] = (args.id, args.bearerToken) match {
+              case (Some(idStr), Some(actualToken)) =>
+                val id = idStr.toLong
+                val query = dal.User.query.filter(_.id === id);
+                node.ctx.queryCli.first(query).map {
+                  case Some(user) =>
+                    val expectedToken = AuthTooling.generateSignature(user.id, user.secret)
+                    if (actualToken != expectedToken) {
+                      ("Invalid signature, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
+                    } else {
+                      user.username match {
+                        case Some(oldUsername) =>
+                          ("Already registered with username: " + oldUsername, user)
+                        case _ =>
+                          ("Successfully registered with username: " + args.username, user.copy(username = Option(args.username)))
+                      }
+                    }
+                  case _ =>
+                    ("ID not found, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
+                }
+              case _ =>
+                Future.successful("ID not found, new user created", dal.User(username = Option(args.username), secret = AuthTooling.generateSecret))
+            }
+            //TODO: password
+            userReq.flatMap { req =>
+              node.ctx.queryCli.attemptWrite(WriteQueryBuilder.put(req._2)).map {
+                case Success(user) =>
+                  val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
+                  WebResponse(true, Option(req._1), Option(GenerateTokenResponse(Option(user.id), Option(bearerToken))))
+                case Failure(e: PSQLException) if(e.getSQLState == "23505") =>
+                  WebResponse(false, Option("Username already exists"), Option(GenerateTokenResponse(None, None)))
+                case Failure(_) =>
+                  WebResponse(false, Option("Something went wrong adding user"), Option(GenerateTokenResponse(None, None)))
+              }
+            }
+          }
+
         }
       )
 

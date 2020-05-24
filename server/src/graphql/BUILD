@@ -10,6 +10,7 @@ scala_library(
     ],
     deps = [
         "//3rdparty/jvm/com/github/etaty:rediscala",
+        "//3rdparty/jvm/org/postgresql",
         "//3rdparty/jvm/org/sangria_graphql:sangria",
         "//3rdparty/jvm/org/sangria_graphql:sangria_marshalling_api",
         "//server/src/auth",
