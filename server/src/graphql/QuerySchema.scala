@@ -6,6 +6,7 @@ import monarchy.auth.AuthTooling
 import monarchy.dal
 import monarchy.dal.Event
 import monarchy.game
+import monarchy.graphql.MutationSchema.credentialsType
 import monarchy.marshalling.game.GameStringDeserializer
 import monarchy.util.Json
 import sangria.schema._
@@ -58,6 +59,35 @@ object QuerySchema {
           val id = node.arg(Args.Id).toLong
           val query = dal.User.query.filter(_.id === id)
           node.ctx.queryCli.first(query)
+        }
+      ),
+
+      Field("login", credentialsType,
+        arguments = List(Args.Credentials),
+        resolve = {node =>
+          import dal.PostgresProfile.Implicits._
+          import node.ctx.executionContext
+          val args = node.arg(Args.Credentials)
+          val query = dal.User.query.filter(_.username === args.username);
+          node.ctx.queryCli.first(query).map {
+            case Some(user) =>
+              (user.salt, user.pwHash) match {
+                case (Some(salt), Some(pwHash)) =>
+                  val hashed = AuthTooling.hashPassword(args.password, Option(salt))
+                  if (hashed._1 != pwHash) {
+                    //later hide messages, currently for debugging
+                    WebResponse(success = false, Option("Incorrect password"), Option(CredentialsResponse()))
+                  } else {
+                    WebResponse(success = true, Option("Successfully logged in as: " + args.username), Option(CredentialsResponse(userId = Option(user.id), bearerToken = Option(AuthTooling.generateSignature(user.id, user.secret)), username = Option(args.username))))
+                  }
+                case _ =>
+                  WebResponse(success = false, Option("Authentication failure"), Option(CredentialsResponse()))
+
+              }
+            case _ =>
+              WebResponse(success = false, Option("Username not found"), Option(CredentialsResponse()))
+          }
+          //TODO: merge bearer tokens?
         }
       ),
 
