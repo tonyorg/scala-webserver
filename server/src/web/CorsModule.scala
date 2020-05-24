@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 object CorsModule {
   val AllowHeaders = List("Content-Type", AuthRoute.UserBearerKey, AuthRoute.UserIdKey)
 //  val AllowOrigins = HttpOriginRange(HttpOrigin("http://localhost:8081"))
-  val AllowOrigins = HttpOriginRange.apply(HttpOrigin("http://localhost:8081"), HttpOrigin("https://prod-tracker-web-staging.herokuapp.com"))
+  val AllowOrigins = HttpOriginRange.apply(HttpOrigin("https://prod-tracker-web-staging.herokuapp.com"))
 
   val ResponseHeaders = List(
     `Access-Control-Allow-Origin`(AllowOrigins),
