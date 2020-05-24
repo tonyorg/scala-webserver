@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
+  "engines": {
+    "node": "^6.9",
+    "yarn": "^0.21"
+  },
   "scripts": {
     "dev": "webpack-dev-server --env.env=dev",
     "prod": "webpack-dev-server --env.env=prod",
