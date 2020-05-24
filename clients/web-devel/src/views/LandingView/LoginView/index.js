@@ -2,7 +2,6 @@ import * as React from 'react';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Form from 'react-bootstrap/Form';
 import styles from './index.css';
-import writeAuth from './writeAuth';
 import writeLogin from './writeLogin';
 import Button from "react-bootstrap/Button";
 
@@ -21,8 +20,7 @@ const LoginView = (props) => {
 
     handleChange(event) {
       const name = event.target.name;
-      const val = event.target.value;
-      this.state[name] = val;
+      this.state[name] = event.target.value;
     }
 
     handleSubmit(event) {

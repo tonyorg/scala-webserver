@@ -4,7 +4,7 @@ import java.time.Instant
 
 import monarchy.auth.AuthTooling
 import monarchy.dal
-import monarchy.dal.User
+import monarchy.dal.{Event, User}
 import monarchy.dalwrite.WriteQueryBuilder
 import sangria.schema._
 
@@ -167,7 +167,7 @@ object MutationSchema {
   )
 
   def genericResponseType = ObjectType(
-    "registerResponse",
+    "genericResponse",
     fields[GraphqlContext, WebResponse[_]](
       Field("success", BooleanType,
         resolve = _.value.success
@@ -198,6 +198,7 @@ object MutationSchema {
       )
     )
   )
+
 
   def authType = ObjectType(
     "Auth",
