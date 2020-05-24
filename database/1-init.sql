@@ -13,6 +13,8 @@ CREATE TABLE users (
   username TEXT,
   phone_number TEXT,
   secret TEXT NOT NULL,
+  pw_hash TEXT,
+  salt TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   UNIQUE(username),
