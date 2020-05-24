@@ -1,5 +1,5 @@
 import * as React from 'react';
-import fetchEvents from './fetchEvents';
+import { eventFetch } from "../../state/actions"
 import EventsChart from "../../components/Charts/EventsChart";
 import { useSelector, useDispatch } from 'react-redux';
 import { withRouter } from 'react-router-dom'
@@ -15,19 +15,7 @@ const EventsView = (props) => {
   const userId = useSelector(_ => _.auth.userId);
   const bearerToken = useSelector(_ => _.auth.bearerToken);
   React.useEffect(() => {
-    fetchEvents({userId, bearerToken}).then(_ => {
-      if (_.data && _.data.fetchTopDomains) {
-        if(_.data.fetchTopDomains.success === true) {
-          setData(_.data.fetchTopDomains.events);
-        } else {
-          console.log(_.data.fetchTopDomains.message);
-        }
-      } else {
-        console.log("Response format incorrect");
-        console.log(_.data);
-      }
-      // dispatch(updateEventsDisplay(_.data))
-    })
+      dispatch(eventFetch({userId, bearerToken}));
   }, []);
 
   return (

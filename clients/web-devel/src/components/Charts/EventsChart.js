@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {
   PieChart, Pie, Sector
 } from 'recharts';
+import {useSelector} from "react-redux";
 
 const renderActiveShape = (props) => {
   const RADIAN = Math.PI / 180;
@@ -48,54 +49,33 @@ const renderActiveShape = (props) => {
   );
 };
 
-function formatData(input){
-  const output = input.map(element => {
+const formatData = (inputData) => {
+  return inputData.map(element => {
     return {
       name: element.domain,
       value: element.duration
     };
   });
-  return output;
-}
+};
 
-export default class EventsChart extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      activeIndex: 0,
-      data: []
-    }
-    this.onPieEnter = this.onPieEnter.bind(this);
-  }
+const EventsChart = (props) => {
+  const data = useSelector(_ => _.events.topEvents);
+  return (
+    <PieChart width={800} height={400}>
+      <Pie
+        dataKey="value"
+        activeIndex={0}
+        activeShape={renderActiveShape}
+        data={formatData(data)}
+        cx={300}
+        cy={200}
+        innerRadius={60}
+        outerRadius={80}
+        fill="#8884d8"
+      />
 
-  //TODO: unsafe
-  componentWillReceiveProps(nextProps) {
-    this.setState({ data: formatData(nextProps.data) });
-  }
+    </PieChart>
+  );
+};
 
-  onPieEnter(data, index) {
-    this.setState({
-      activeIndex: index,
-    });
-  }
-
-  render() {
-    return (
-      <PieChart width={800} height={400}>
-        <Pie
-          dataKey="value"
-          activeIndex={this.state.activeIndex}
-          activeShape={renderActiveShape}
-          data={this.state.data}
-          cx={300}
-          cy={200}
-          innerRadius={60}
-          outerRadius={80}
-          fill="#8884d8"
-          onMouseEnter={this.onPieEnter}
-        />
-
-      </PieChart>
-    );
-  }
-}
+export default EventsChart;

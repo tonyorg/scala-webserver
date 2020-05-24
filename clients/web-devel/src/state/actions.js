@@ -2,6 +2,7 @@ import * as Types from './types'
 import Auth from '~/api/auth';
 import streamProxy from '~/api/streamProxy';
 import fetchGame from '~/api/fetchGame';
+import fetchEvents from '~/api/fetchEvents';
 
 // Utilities
 const createAction = (type, payload) => ({ type, payload });
@@ -33,6 +34,18 @@ export const gameFetch = (id) => (dispatch) => {
     dispatch(createAction(Types.GAME_FETCHED, r.data.game));
     return r.data.game;
   });
+};
+
+export const eventFetch = ({userId, bearerToken}) => (dispatch) => {
+  dispatch(createAction((Types.EVENT_FETCHING)));
+  return fetchEvents({userId: userId, bearerToken: bearerToken}).then(response => {
+    if (response.data && response.data.fetchTopDomains) {
+      if(response.data.fetchTopDomains.success === true) {
+        dispatch(createAction(Types.EVENT_FETCHED, response.data.fetchTopDomains.events));
+      }
+    }
+    // dispatch(updateEventsDisplay(_.data))
+  })
 };
 
 export const gameSetSelections = (selections) =>

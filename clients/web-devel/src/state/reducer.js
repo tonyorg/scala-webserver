@@ -27,9 +27,25 @@ const INITIAL_GAMES = {
   }
 };
 
+const INITIAL_TOP_EVENTS = {
+  topEvents: []
+};
+
+const events = (state = INITIAL_TOP_EVENTS, action) => {
+  switch (action.type) {
+    case Types.EVENT_FETCHED:
+      return {
+        ...state,
+        topEvents: action.payload
+      };
+    default:
+      return state;
+  }
+};
+
 const auth = (state = INITIAL_AUTH, action) => {
   switch (action.type) {
-    case Types.AUTH_SET:
+    case Types.EVENT_FETCHING:
       return {
         ...state,
         ...action.payload
@@ -111,5 +127,6 @@ export default combineReducers({
   auth,
   connection,
   matchmaking,
-  games
+  games,
+  events
 });
