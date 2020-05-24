@@ -19,10 +19,7 @@ const LoginView = (props) => {
     }
 
     handleChange(event) {
-      const name = event.target.name;
-      this.setState({
-        name: event.target.value,
-      })
+      this.state[event.target.name] = event.target.value;
     }
 
     handleSubmit(event) {
