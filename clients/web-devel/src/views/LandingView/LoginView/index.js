@@ -4,76 +4,81 @@ import Form from 'react-bootstrap/Form';
 import styles from './index.css';
 import writeAuth from './writeAuth';
 import writeLogin from './writeLogin';
+import Button from "react-bootstrap/Button";
 
 const LoginView = (props) => {
-  const [mode, setMode] = React.useState('phone');
-  const [phoneNumber, setPhoneNumber] = React.useState('');
-  const [otp, setOtp] = React.useState('');
-  const focusRef = React.useCallback(node => node && node.focus(), []);
-
-  const onChangePhoneNumber = React.useCallback((e) => {
-    const phoneNumber = e.target.value;
-    setPhoneNumber(phoneNumber);
-    if (mode == 'phone' && phoneNumber.length >= 10) {
-      setMode('otp-issued');
-      writeAuth({ phoneNumber });
+  class LoginForm extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        username: "",
+        password: "",
+        errorMessage : ""
+      };
+      this.handleChange = this.handleChange.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
     }
-  });
 
-  const onChangeOtp = React.useCallback((e) => {
-    const otp = e.target.value;
-    setOtp(otp);
-    if (mode == 'otp-issued' && otp.length >= 4) {
-      writeLogin({
-        phoneNumber,
-        otp
-      }).then(r => props.onLogin(r.data.login));
+    handleChange(event) {
+      const name = event.target.name;
+      const val = event.target.value;
+      this.state[name] = val;
     }
-  });
 
-  const phoneNumberEl = mode == 'phone' ? (
-    <Form.Group controlId='phone-number'>
-      <Form.Label>Log in using your phone number</Form.Label>
-      <Form.Control
-        maxLength={10}
-        size='lg'
-        type='text'
-        value={phoneNumber}
-        placeholder='Enter phone number'
-        onChange={onChangePhoneNumber}
-        ref={focusRef}
-      />
-    </Form.Group>
-  ) : null;
+    handleSubmit(event) {
+        event.preventDefault();
+        const username = this.state.username;
+        const password = this.state.password;
+        writeLogin({
+          username,
+          password
+        }).then(response => {
+          if (response && response.data && response.data.login) {
+            if (response.data.login.success === true) {
+              props.onLogin(response.data.login);
+            } else {
+              //TODO: for now...
+              alert(response.data.login.message);
+            }
+          } else {
+            console.log("Response format incorrect");
+            console.log(response);
+          }
+        });
+    }
 
-  const otpEl = mode == 'otp-issued' ? (
-    <Form.Group controlId='otp'>
-      <Form.Label>Enter the verification code sent to your phone</Form.Label>
-      <Form.Control
-        maxLength={4}
-        size='lg'
-        type='text'
-        value={otp}
-        placeholder='Enter verification code'
-        onChange={onChangeOtp}
-        ref={focusRef}
-      />
-    </Form.Group>
-  ) : null;
+    render() {
+      return (
+        <Form onSubmit={this.handleSubmit}>
+          <Form.Group>
+            <Form.Label>Username</Form.Label>
+            <Form.Control name="username" type = "text" placeholder="Enter username" onChange={this.handleChange}/>
+            <Form.Control.Feedback type="invalid">
+              Username not found!
+            </Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Password</Form.Label>
+            <Form.Control name="password" type = "password" placeholder="Enter password"  onChange={this.handleChange}/>
+          </Form.Group>
+          <Button variant="primary" type="submit">
+            Login
+          </Button>
+        </Form>
+      );
+    }
+  }
 
   return (
     <>
       <Jumbotron>
-        <h1>Welcome to Monarchy!</h1>
+        <h1>Welcome to Productivity Tracker!</h1>
         <p>
-          This a low-fidelity debugging client to exercise the API.
+          Please login to view and analyse your data.
         </p>
       </Jumbotron>
       <div className={styles.login}>
-        <Form>
-          {phoneNumberEl}
-          {otpEl}
-        </Form>
+        <LoginForm/>
       </div>
     </>
   );

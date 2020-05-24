@@ -1,18 +1,18 @@
 import Cookies from 'js-cookie';
 
-const BearerKey = 'X-Monarchy-Bearer-Token';
-const UserKey = 'X-Monarchy-User-Id';
-const UserDataKey = 'X-Monarchy-User-Data';
+const BearerKey = 'X-ProdTracker-Bearer-Token';
+const UserKey = 'X-ProdTracker-User-Id';
+const UsernameKey = 'X-ProdTracker-Username';
 
 const poll = () => {
   const userId = Cookies.get(UserKey);
-  const bearerTokey = Cookies.get(BearerKey);
-  const user = JSON.parse(Cookies.get(UserDataKey) || 'null');
+  const bearerToken = Cookies.get(BearerKey);
+  const username = Cookies.get(UsernameKey);
   return {
     loggedIn: Boolean(userId),
     userId,
-    user,
-    bearerTokey
+    bearerToken,
+    username
   }
 };
 
@@ -25,10 +25,10 @@ const headers = () => {
 };
 
 const apply = (auth) => {
-  const { userId, user, bearerToken } = auth;
+  const { userId, bearerToken, username } = auth;
   userId && Cookies.set(UserKey, userId);
-  user && Cookies.set(UserDataKey, JSON.stringify(user));
   bearerToken && Cookies.set(BearerKey, bearerToken);
+  username && Cookies.set(UsernameKey, username);
 };
 
 export default {

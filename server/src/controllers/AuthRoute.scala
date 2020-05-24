@@ -27,7 +27,7 @@ case class AuthRoute[T](filter: AuthFilter, controller: AuthController)(implicit
   def fetchAuth(ctx: RequestContext): Future[Auth] = {
     val authLookup = headers(ctx.request.headers).orElse(cookies(ctx.request.cookies))
     authLookup match {
-      case Some((userId, bearerToken)) => fetch(userId).map {
+      case Some((userId, bearerToken, username)) => fetch(userId).map {
         // Missing authentication information
         case None => NullAuth
         case Some(user) =>
@@ -54,21 +54,23 @@ case class AuthRoute[T](filter: AuthFilter, controller: AuthController)(implicit
 }
 
 object AuthRoute {
-  val UserBearerKey = "X-Monarchy-Bearer-Token"
-  val UserIdKey = "X-Monarchy-User-Id"
+  val UserBearerKey = "X-ProdTracker-Bearer-Token"
+  val UserIdKey = "X-ProdTracker-User-Id"
+  val UsernameKey = "X-ProdTracker-Username"
   val Reject = HttpResponse(StatusCodes.Unauthorized)
 
-  def headers(hs: Seq[HttpHeader]): Option[(Long, String)] =
+  def headers(hs: Seq[HttpHeader]): Option[(Long, String, String)] =
     extract(hs.map { h => h.name -> h.value }.toMap)
 
-  def cookies(cs: Seq[HttpCookiePair]): Option[(Long, String)] =
+  def cookies(cs: Seq[HttpCookiePair]): Option[(Long, String, String)] =
     extract(cs.map { c => c.name -> c.value }.toMap)
 
-  def extract(props: Map[String, String]): Option[(Long, String)] = {
+  def extract(props: Map[String, String]): Option[(Long, String, String)] = {
     for {
       rawUserId <- props.get(UserIdKey)
       userId <- Try(rawUserId.toLong).toOption
       userToken <- props.get(UserBearerKey)
-    } yield (userId, userToken)
+      username <- props.get(UsernameKey)
+    } yield (userId, userToken, username)
   }
 }

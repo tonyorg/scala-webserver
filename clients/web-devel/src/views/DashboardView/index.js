@@ -14,10 +14,8 @@ const DashboardView = (props) => {
       <NavigationView />
       <div className={styles.root}>
         <Alert variant='primary'>
-          Welcome, you are logged in as <b>{auth.user.username}</b>
+          Welcome, you are logged in as <b>{auth.username}</b>
         </Alert>
-        <GamesView />
-        <MatchmakingView />
       </div>
     </>
   );
