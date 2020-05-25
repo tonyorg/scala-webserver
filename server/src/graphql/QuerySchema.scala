@@ -1,6 +1,6 @@
 package monarchy.graphql
 
-import java.time.Duration
+import java.time.{Duration, Instant}
 
 import monarchy.auth.AuthTooling
 import monarchy.dal
@@ -107,8 +107,9 @@ object QuerySchema {
 //                val query = dal.Event.query.filter(_.userId === args.userId.toLong).groupBy(event => (event.domain, event.path)).map{
 //                  case ((domain, path), group) => (domain, path, group.map(event => event.endTime - event.startTime).sum)
 //                }.sortBy(_._3.desc)
-                val topK = DefaultConstantsTool.fetchTopDomainsGetMaxEntries(args.numTop);
-                val domainQuery = dal.Event.query.filter(_.userId === args.userId.toLong).groupBy(event => (event.domain)).map{
+                val timeLimit = Instant.now().minusMillis(DefaultConstantsTool.fetchTopDomainsGetTimeLimit(args.milliTimeStr))
+                val topK = DefaultConstantsTool.fetchTopDomainsGetMaxEntries(args.numTop)
+                val domainQuery = dal.Event.query.filter(_.userId === args.userId.toLong).filter(_.endTime >= timeLimit).groupBy(event => (event.domain)).map{
                   case (domain, group) => (domain, group.map(event => event.endTime - event.startTime).sum)
                 }.sortBy(_._2.desc)
                 val query = domainQuery.take(topK).unionAll(Query.apply(("Others", domainQuery.drop(topK).map(_._2).sum)))
