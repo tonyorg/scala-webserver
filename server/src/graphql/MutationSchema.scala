@@ -18,7 +18,7 @@ case class WebResponse[T](
 )
 
 case class CredentialsResponse(
-  userId: Option[Long] = None,
+  userId: Option[String] = None,
   bearerToken: Option[String] = None,
   username: Option[String] = None
 )
@@ -47,7 +47,7 @@ object MutationSchema {
           val user = dal.User(username = None, phoneNumber = None, secret = AuthTooling.generateSecret)
           node.ctx.queryCli.write(WriteQueryBuilder.put(user)).map { user =>
             val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-            WebResponse(success = true, Option("Success"), Option(CredentialsResponse(Option(user.id), Option(bearerToken))))
+            WebResponse(success = true, Option("Success"), Option(CredentialsResponse(Option(user.id.toString), Option(bearerToken))))
           }
         }
       ),
@@ -122,7 +122,7 @@ object MutationSchema {
               node.ctx.queryCli.attemptWrite(WriteQueryBuilder.put(req._2)).map {
                 case Success(user) =>
                   val bearerToken = AuthTooling.generateSignature(user.id, user.secret)
-                  WebResponse(success = true, Option(req._1), Option(CredentialsResponse(Option(user.id), Option(bearerToken), Option(args.username))))
+                  WebResponse(success = true, Option(req._1), Option(CredentialsResponse(Option(user.id.toString), Option(bearerToken), Option(args.username))))
                 case Failure(e: PSQLException) if(e.getSQLState == "23505") =>
                   WebResponse(success = false, Option("Username already exists"), Option(CredentialsResponse()))
                 case Failure(_) =>
@@ -158,7 +158,7 @@ object MutationSchema {
       Field("message", OptionType(StringType),
         resolve = _.value.message
       ),
-      Field("userId", OptionType(LongType),
+      Field("userId", OptionType(StringType),
         resolve = _.value.data.flatMap(_.userId)
       ),
       Field("bearerToken", OptionType(StringType),

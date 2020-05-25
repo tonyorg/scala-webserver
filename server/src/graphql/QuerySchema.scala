@@ -78,7 +78,7 @@ object QuerySchema {
                     //later hide messages, currently for debugging
                     WebResponse(success = false, Option("Incorrect password"), Option(CredentialsResponse()))
                   } else {
-                    WebResponse(success = true, Option("Successfully logged in as: " + args.username), Option(CredentialsResponse(userId = Option(user.id), bearerToken = Option(AuthTooling.generateSignature(user.id, user.secret)), username = Option(args.username))))
+                    WebResponse(success = true, Option("Successfully logged in as: " + args.username), Option(CredentialsResponse(userId = Option(user.id.toString), bearerToken = Option(AuthTooling.generateSignature(user.id, user.secret)), username = Option(args.username))))
                   }
                 case _ =>
                   WebResponse(success = false, Option("Authentication failure"), Option(CredentialsResponse()))

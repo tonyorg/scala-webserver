@@ -3,16 +3,24 @@ import Auth from '~/api/auth';
 import DashboardView from '~/views/DashboardView';
 import LoginView from './LoginView';
 import { useDispatch, useSelector } from 'react-redux'
-import { authSet } from '~/state/actions';
+import { authLoginSuccess } from '~/state/actions';
 
 const LandingView = (props) => {
   // State
   const dispatch = useDispatch();
-  const auth = useSelector(_ => _.auth);
-  const onLogin = React.useCallback(e => dispatch(authSet(e)))
+  const onLoginSuccess = (response) => {
+    dispatch(authLoginSuccess(response));
+  };
 
-  return auth.loggedIn ?
-    <DashboardView auth={auth} /> : <LoginView onLogin={onLogin} />;
+  const DisplayedView = (props) => {
+    if (props.isLoggedIn) {
+      return <DashboardView/>;
+    } else {
+      return <LoginView onLoginSuccess={onLoginSuccess} />;
+    }
+  };
+
+  return <DisplayedView isLoggedIn={useSelector(_ => _.auth).loggedIn} />;
 };
 
 export default LandingView;

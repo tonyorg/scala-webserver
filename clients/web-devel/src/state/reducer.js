@@ -45,13 +45,13 @@ const events = (state = INITIAL_TOP_EVENTS, action) => {
 
 const auth = (state = INITIAL_AUTH, action) => {
   switch (action.type) {
-    case Types.AUTH_SET:
+    case Types.AUTH_LOGIN:
       return {
         ...state,
         ...action.payload
       };
     case Types.AUTH_LOGOUT:
-      return INITIAL_AUTH;
+      return {};
     default:
       return state;
   }

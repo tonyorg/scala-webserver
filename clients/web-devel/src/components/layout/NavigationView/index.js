@@ -8,7 +8,7 @@ import { authLogout } from '~/state/actions';
 
 const NavigationView = (props) => {
   const dispatch = useDispatch();
-  const onLogout = React.useCallback(e => dispatch(authLogout(e)))
+  const onLogout = () => dispatch(authLogout());
   return (
     <Navbar bg='light' variant='light'>
       <Navbar.Brand href='/'>ProductionTracker</Navbar.Brand>
