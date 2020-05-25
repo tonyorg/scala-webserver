@@ -11,6 +11,7 @@ const addons = (/* string | string[] */ addonsArg) => {
 };
 
 module.exports = env => {
+  console.log(env);
   if (!env) {
     throw new Error(buildValidations.ERR_NO_ENV_FLAG);
   }

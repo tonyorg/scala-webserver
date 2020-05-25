@@ -1,9 +1,8 @@
 import { print } from 'graphql/language/printer';
 import Auth from './auth';
+import backendDomain from "./env";
 
-// const apiDomain = 'http://localhost:8080';
-const apiDomain = 'https://prod-tracker-staging.herokuapp.com';
-const graphqlRoute = apiDomain + '/graphql';
+const graphqlRoute = backendDomain + '/graphql';
 
 const fetchGql = (graphqlAst) => {
   const { userId, bearerToken } = Auth.poll();

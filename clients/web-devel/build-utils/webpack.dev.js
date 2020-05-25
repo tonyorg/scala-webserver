@@ -2,7 +2,7 @@ const commonPaths = require('./common-paths');
 
 const webpack = require('webpack');
 
-const port = process.env.PORT || 8081;
+const port = process.env.PORT || 5000;
 
 const config = {
   mode: 'development',
