@@ -9,7 +9,6 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux'
 
 const DashboardView = (props) => {
-  console.log(process.env.BACKEND_URL);
   const auth = useSelector(_ => _.auth);
   return (
     <>

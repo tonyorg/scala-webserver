@@ -1,7 +1,7 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import backendDomain from "./env";
 
-const webSocketRoute = 'ws://' + backendDomain + '/connect';
+const webSocketRoute = 'wss://' + backendDomain + '/connect';
 const createWebSocket = () => (
   new ReconnectingWebSocket(webSocketRoute, null, {
     automaticOpen: false,
