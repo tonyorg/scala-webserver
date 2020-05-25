@@ -10,7 +10,6 @@ import Alert from "react-bootstrap/Alert";
 import {useState} from "react";
 
 const EventsView = (props) => {
-  const [data, setData] = useState([]);
   const dispatch = useDispatch();
   const userId = useSelector(_ => _.auth.userId);
   const bearerToken = useSelector(_ => _.auth.bearerToken);
@@ -19,9 +18,7 @@ const EventsView = (props) => {
   }, []);
 
   return (
-    <EventsChart
-      data={data}
-    />
+    <EventsChart/>
   );
 };
 
