@@ -8,7 +8,7 @@ import monarchy.dal.Event
 import monarchy.game
 import monarchy.graphql.MutationSchema.credentialsType
 import monarchy.marshalling.game.GameStringDeserializer
-import monarchy.util.Json
+import monarchy.util.{DefaultConstantsTool, Json}
 import sangria.schema._
 
 import scala.collection.immutable.HashMap
@@ -107,14 +107,7 @@ object QuerySchema {
 //                val query = dal.Event.query.filter(_.userId === args.userId.toLong).groupBy(event => (event.domain, event.path)).map{
 //                  case ((domain, path), group) => (domain, path, group.map(event => event.endTime - event.startTime).sum)
 //                }.sortBy(_._3.desc)
-                val maxTop = 10;
-                val defaultTop = 7;
-                val topK = args.numTop match{
-                  case Some(k) =>
-                    Math.min(k, maxTop)
-                  case None =>
-                    defaultTop
-                }
+                val topK = DefaultConstantsTool.fetchTopDomainsGetMaxEntries(args.numTop);
                 val domainQuery = dal.Event.query.filter(_.userId === args.userId.toLong).groupBy(event => (event.domain)).map{
                   case (domain, group) => (domain, group.map(event => event.endTime - event.startTime).sum)
                 }.sortBy(_._2.desc)
