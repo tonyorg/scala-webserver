@@ -31,8 +31,15 @@ const apply = (auth) => {
   username && Cookies.set(UsernameKey, username);
 };
 
+const logout = () => {
+  Cookies.remove(UserKey);
+  Cookies.remove(BearerKey);
+  Cookies.remove(UsernameKey);
+};
+
 export default {
   poll,
   headers,
-  apply
+  apply,
+  logout
 };

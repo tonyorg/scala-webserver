@@ -3,14 +3,18 @@ import ConnectionView from './ConnectionView';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import { Link } from 'react-router-dom';
+import {useDispatch} from "react-redux";
+import { authLogout } from '~/state/actions';
 
 const NavigationView = (props) => {
+  const dispatch = useDispatch();
+  const onLogout = React.useCallback(e => dispatch(authLogout(e)))
   return (
     <Navbar bg='light' variant='light'>
-      <Navbar.Brand href='/'>Monarchy</Navbar.Brand>
+      <Navbar.Brand href='/'>ProductionTracker</Navbar.Brand>
       <Navbar.Collapse>
         <Nav className='mr-auto'>
-          <Link to='/performance'>Match performance</Link>
+          <Link to='/' onClick={onLogout}>Logout</Link>
         </Nav>
         <ConnectionView />
       </Navbar.Collapse>

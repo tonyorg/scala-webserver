@@ -25,7 +25,6 @@ const getTooltipAnchor = (sectorData) => {
 };
 
 function renderPieLabel(sectorData) {
-  debugger;
   return <text x={sectorData.x} y={sectorData.y} fill="#666" textAnchor={getTooltipAnchor(sectorData)}>{`#${sectorData.payload.rank}: ${sectorData.name} (${Math.round(sectorData.percent * 100)}%)`}</text>;
 }
 const EventsChart = (props) => {
