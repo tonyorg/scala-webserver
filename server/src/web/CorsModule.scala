@@ -13,9 +13,11 @@ import scala.concurrent.duration._
   * From https://dzone.com/articles/handling-cors-in-akka-http
   * and https://ali.actor
   */
+
 object CorsModule {
+  val defaultClientUrl = "http://localhost:5000";
   val AllowHeaders = List("Content-Type", AuthRoute.UserBearerKey, AuthRoute.UserIdKey)
-  val AllowOrigins = HttpOriginRange(HttpOrigin("http://localhost:8081"))
+  val AllowOrigins = HttpOriginRange(HttpOrigin(sys.env.getOrElse("FRONTEND_URL", defaultClientUrl)))
 
   val ResponseHeaders = List(
     `Access-Control-Allow-Origin`(AllowOrigins),

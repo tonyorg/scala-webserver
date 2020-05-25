@@ -19,10 +19,7 @@ const LoginView = (props) => {
     }
 
     handleChange(event) {
-      const name = event.target.name;
-      this.setState({
-        name: event.target.value,
-      })
+      this.state[event.target.name] = event.target.value;
     }
 
     handleSubmit(event) {
@@ -72,7 +69,7 @@ const LoginView = (props) => {
   return (
     <>
       <Jumbotron>
-        <h1>Welcome to Productivity Tracker!</h1>
+        <h1>Welcome to Productivity Tracker!!!</h1>
         <p>
           Please login to view and analyse your data.
         </p>

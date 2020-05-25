@@ -1,7 +1,8 @@
 import { print } from 'graphql/language/printer';
 import Auth from './auth';
+import backendDomain from "./env";
 
-const graphqlRoute = 'http://localhost:8080/graphql';
+const graphqlRoute = backendDomain + '/graphql';
 
 const fetchGql = (graphqlAst) => {
   const { userId, bearerToken } = Auth.poll();

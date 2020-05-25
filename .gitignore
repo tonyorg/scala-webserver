@@ -4,3 +4,6 @@ bazel-*
 .ijwb
 *.iml
 out
+clients/web-devel/dist/
+/*.sh
+*.log

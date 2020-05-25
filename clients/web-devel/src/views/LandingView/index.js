@@ -13,6 +13,6 @@ const LandingView = (props) => {
 
   return auth.loggedIn ?
     <DashboardView auth={auth} /> : <LoginView onLogin={onLogin} />;
-}
+};
 
 export default LandingView;

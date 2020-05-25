@@ -53,7 +53,8 @@ const config = {
     new HtmlWebpackPlugin({
       template: `public/index.html`,
       favicon: `public/favicon.ico`
-    })
+    }),
+    new webpack.EnvironmentPlugin({'BACKEND_URL': process.env.BACKEND_URL})
   ],
   resolve: {
     alias: {
@@ -61,5 +62,7 @@ const config = {
     }
   }
 };
+
+
 
 module.exports = config;
