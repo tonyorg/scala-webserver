@@ -12,22 +12,15 @@ const createWebSocket = () => (
 let webSocket = null;
 
 const send = (name, body) => {
-  // const bodyRaw = body != null ? JSON.stringify(body) : null;
-  // const payload = JSON.stringify({ name, body: bodyRaw });
-  // webSocket && webSocket.send(payload);
 };
 
 const connect = () => {
-  // webSocket && webSocket.close();
-  // webSocket = createWebSocket();
 };
 
 const listenerGen = (handler) => (raw) => {
-  // handler(JSON.parse(raw.data))
 };
 
 const listen = (handler) => {
-  // webSocket && (webSocket.onmessage = listenerGen(handler));
 };
 
 export default {

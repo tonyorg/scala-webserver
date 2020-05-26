@@ -24,19 +24,10 @@ const StreamConnection = () => {
 
   // Equivalent of componentDidMount
   React.useEffect(() => {
-    console.log('componentDidMount')
-    setInterval(() => dispatch(Actions.ping()), PingPeriod);
   }, []);
 
   // Open port when auth changes
   React.useEffect(() => {
-    if (auth.loggedIn) {
-      streamProxy.connect();
-      streamProxy.listen((message) => {
-        const action = messageConverter(message);
-        action && dispatch(action);
-      });
-    }
   }, [auth]);
   // Nothing to render, just need access to store and dispatch.
   return null;

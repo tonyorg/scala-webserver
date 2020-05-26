@@ -7,8 +7,8 @@ import Button from "react-bootstrap/Button";
 
 const LoginView = (props) => {
   class LoginForm extends React.Component {
-    constructor(props) {
-      super(props);
+    constructor(props, context) {
+      super(props, context);
       this.state = {
         username: "",
         password: "",
@@ -32,7 +32,7 @@ const LoginView = (props) => {
         }).then(response => {
           if (response && response.data && response.data.login) {
             if (response.data.login.success === true) {
-              props.onLogin(response.data.login);
+              props.onLoginSuccess(response.data.login);
             } else {
               //TODO: for now...
               alert(response.data.login.message);
