@@ -54,7 +54,7 @@ const config = {
       template: `public/index.html`,
       favicon: `public/favicon.ico`
     }),
-    new webpack.EnvironmentPlugin({'BACKEND_URL': process.env.BACKEND_URL})
+    new webpack.EnvironmentPlugin({'BACKEND_URL': process.env.BACKEND_URL ? process.env.BACKEND_URL : null})
   ],
   resolve: {
     alias: {

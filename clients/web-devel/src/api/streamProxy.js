@@ -1,7 +1,7 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import backendDomain from "./env";
 
-const webSocketRoute = 'wss://' + backendDomain + '/connect';
+const webSocketRoute = 'ws://' + backendDomain + '/connect';
 const createWebSocket = () => (
   new ReconnectingWebSocket(webSocketRoute, null, {
     automaticOpen: false,
@@ -12,22 +12,22 @@ const createWebSocket = () => (
 let webSocket = null;
 
 const send = (name, body) => {
-  const bodyRaw = body != null ? JSON.stringify(body) : null;
-  const payload = JSON.stringify({ name, body: bodyRaw });
-  webSocket && webSocket.send(payload);
+  // const bodyRaw = body != null ? JSON.stringify(body) : null;
+  // const payload = JSON.stringify({ name, body: bodyRaw });
+  // webSocket && webSocket.send(payload);
 };
 
 const connect = () => {
-  webSocket && webSocket.close();
-  webSocket = createWebSocket();
+  // webSocket && webSocket.close();
+  // webSocket = createWebSocket();
 };
 
 const listenerGen = (handler) => (raw) => {
-  handler(JSON.parse(raw.data))
+  // handler(JSON.parse(raw.data))
 };
 
 const listen = (handler) => {
-  webSocket && (webSocket.onmessage = listenerGen(handler));
+  // webSocket && (webSocket.onmessage = listenerGen(handler));
 };
 
 export default {
