@@ -9,6 +9,11 @@ const createAction = (type, payload) => ({ type, payload });
 const clockAt = () => (new Date).getTime();
 
 // Actions below
+export const authLogout = () => {
+  Auth.logout();
+  return createAction(Types.AUTH_LOGOUT, {});
+};
+
 export const authSet = (auth) => {
   Auth.apply(auth);
   return createAction(Types.AUTH_SET, auth);
