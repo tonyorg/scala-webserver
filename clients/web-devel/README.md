@@ -4,11 +4,7 @@ This is a web-based API client for the monarchy backend intended for easing deve
 
 ### Deploying to Heroku
 
-//TODO: Workaround
-```
-git push heroku `git subtree split --prefix clients/web-devel/ master`master  --force
-```
-Can replace ``master` `` with ``local-branch-name` ``
+Set the environment config vars FRONTEND_URL and BACKEND_URL for CORS
 
 ### Usage
 
