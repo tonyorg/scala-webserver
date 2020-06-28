@@ -20,7 +20,7 @@ abstract class GraphqlArg[T: TypeTag] {
 case class CredentialsQuery(id: Option[String], bearerToken: Option[String], username: String, password: String)
 object CredentialsQuery extends GraphqlArg[CredentialsQuery]
 
-case class TopDomainsQuery(userId: String, bearerToken: String, numTop: Option[Int])
+case class TopDomainsQuery(userId: String, bearerToken: String, numTop: Option[Int], milliTimeStr: Option[String])
 object TopDomainsQuery extends GraphqlArg[TopDomainsQuery]
 
 case class TrackEventQuery(id: Long, bearerToken: String, domain: String, path: String, startTime: Long, endTime: Long)
